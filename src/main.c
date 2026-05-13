@@ -20,6 +20,11 @@ int main(int argc, char *argv[]) {
           *ptr = '\0';
       }
 
+      // check for exit
+      if (strcmp(buffer, "exit") == 0) {
+          break;
+      }
+
       printf("%s: command not found\n", buffer);
   }
 
