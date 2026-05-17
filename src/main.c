@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
           printf("\n");
       }
       else if (strcmp(tokens[0], "type") == 0) {
-          if (strcmp(tokens[1], "exit") == 0 || strcmp(tokens[1], "echo") == 0) {
+          if (strcmp(tokens[1], "exit") == 0 || strcmp(tokens[1], "echo") == 0 || strcmp(tokens[1], "type") == 0) {
               printf("%s is a shell builtin\n", tokens[1]);
           }
           else {
