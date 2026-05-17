@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
                   if (access(full_path, X_OK) == 0) {
                       // If the file exists and has execute permissions, print <command> is <full_path> and stop.
                       if (found != 1) {
-                          printf("%s is %s\n", tokens[1], dir);
+                          printf("%s is %s\n", tokens[1], full_path);
                       }
                       found = 1;
                       break;
