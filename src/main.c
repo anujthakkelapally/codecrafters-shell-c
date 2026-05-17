@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
               printf("%s is a shell builtin\n", tokens[1]);
           }
           else {
-              command_not_found(tokens[1]);
+              printf("%s: not found\n", tokens[1]);
           }
       }
       else {
