@@ -103,9 +103,16 @@ void builtin_type(char **tokens, int count) {
     }
 }
 
+void builtin_pwd(char **tokens, int count) {
+    char buffer[BUFFER_SIZE];
+    getcwd(buffer, BUFFER_SIZE);
+    printf("%s\n", buffer);
+}
+
 static const builtin_entry dispatch[] = {{"echo", builtin_echo},
                                          {"exit", builtin_exit},
                                          {"type", builtin_type},
+                                         {"pwd", builtin_pwd},
                                          {NULL, NULL}};
 
 bool is_builtin(const char *cmd) {
