@@ -110,7 +110,13 @@ void builtin_pwd(char **tokens, int count) {
 }
 
 void builtin_cd(char **tokens, int count) {
-    const char *dir = (count > 1)? tokens[1]: getenv("HOME");
+    const char *dir;
+    if (count == 1 || (strcmp(tokens[1], "~") == 0)) {
+        dir = getenv("HOME");
+    }
+    else {
+        dir = tokens[1];
+    }
     if (dir == NULL) {
         fprintf(stderr, "cd: HOME not set\n");
         return;
