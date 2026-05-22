@@ -109,10 +109,22 @@ void builtin_pwd(char **tokens, int count) {
     printf("%s\n", buffer);
 }
 
+void builtin_cd(char **tokens, int count) {
+    const char *dir = (count > 1)? tokens[1]: getenv("HOME");
+    if (dir == NULL) {
+        fprintf(stderr, "cd: HOME not set\n");
+        return;
+    }
+    if (chdir(dir) != 0) {
+        fprintf(stderr, "cd: %s: No such file or directory\n", tokens[1]);
+    }
+}
+
 static const builtin_entry dispatch[] = {{"echo", builtin_echo},
                                          {"exit", builtin_exit},
                                          {"type", builtin_type},
                                          {"pwd", builtin_pwd},
+                                         {"cd", builtin_cd},
                                          {NULL, NULL}};
 
 bool is_builtin(const char *cmd) {
