@@ -1,3 +1,4 @@
+#include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,10 +22,11 @@ int tokenize(char *buffer, char **tokens, int max_tokens) {
     int count = 0;
     char *saveptr;
     char *token = strtok_r(buffer, " \t\n", &saveptr);
-    while (token != NULL && count < max_tokens) {
+    while (token != NULL && count < max_tokens - 1) {
         tokens[count++] = token;
         token = strtok_r(NULL, " \t\n", &saveptr);
     }
+    tokens[count] = NULL;
     return count;
 }
 
@@ -40,6 +42,28 @@ int is_builtin(char *cmd) {
         return 1;
     }
     return 0;
+}
+
+char* find_in_path(const char *path, const char *cmd, char *buffer, size_t buffer_size) {
+    if (path == NULL || cmd == NULL || buffer == NULL) {
+        return NULL;
+    }
+    char *path_copy = strdup(path);
+    if (path_copy == NULL) {
+        return NULL;
+    }
+    char *saveptr;
+    char *dir = strtok_r(path_copy, ":", &saveptr);
+    while (dir != NULL) {
+        snprintf(buffer, buffer_size, "%s/%s", dir, cmd);
+        if (access(buffer, X_OK) == 0) {
+            free(path_copy);
+            return buffer;
+        }
+        dir = strtok_r(NULL, ":", &saveptr);
+    }
+    free(path_copy);
+    return NULL;
 }
 
 int main(int argc, char *argv[]) {
@@ -75,40 +99,41 @@ int main(int argc, char *argv[]) {
           if (is_builtin(tokens[1]) == 1) {
               printf("%s is a shell builtin\n", tokens[1]);
           }
+          // NOT A BUILTIN
           else {
-              char *PATH = getenv("PATH");
-              char *PATH_copy = strdup(PATH);
-              char *saveptr;
-              char *dir = strtok_r(PATH_copy, ":", &saveptr);
-              int found = 0;
-
-              // for each PATH directory
-              while (dir != NULL) {
-                  char full_path[BUFFER_SIZE];
-                  snprintf(full_path, sizeof(full_path), "%s/%s", dir, tokens[1]);
-                  // check if file with command name exists
-                  // check if file has execute permissions
-                  if (access(full_path, X_OK) == 0) {
-                      // If the file exists and has execute permissions, print <command> is <full_path> and stop.
-                      if (found != 1) {
-                          printf("%s is %s\n", tokens[1], full_path);
-                      }
-                      found = 1;
-                      break;
-                  }
-                  dir = strtok_r(NULL, ":", &saveptr);
-              }
-              // If the file exists but lacks execute permissions, skip it and continue to the next directory.
-              // If no executable is found in any directory, print <command>: not found.
-              if (found == 0) {
+              char *cmd_path = malloc(BUFFER_SIZE);
+              cmd_path = find_in_path(getenv("PATH"), tokens[1], cmd_path, BUFFER_SIZE);
+              if (cmd_path == NULL) {
                   printf("%s: not found\n", tokens[1]);
               }
+              else {
+                  printf("%s is %s\n", tokens[1], cmd_path);
+              }
+              free(cmd_path);
           }
       }
       else {
-          command_not_found(tokens[0]);
+          char *cmd_path = malloc(BUFFER_SIZE);
+          cmd_path = find_in_path(getenv("PATH"), tokens[0], cmd_path, BUFFER_SIZE);
+          if (cmd_path == NULL) {
+              command_not_found(tokens[0]);
+          }
+          else {
+              pid_t pid = fork();
+              if (pid == 0) {
+                  execvp(tokens[0], tokens);
+                  fprintf(stderr, "%s: command not found\n", tokens[0]);
+                  exit(1);
+              }
+              else if (pid > 0) {
+                  int status;
+                  waitpid(pid, &status, 0);
+              }
+              else {
+                  perror("fork");
+              }
+          }
       }
   }
-
   return 0;
 }
