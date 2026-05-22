@@ -113,8 +113,7 @@ void builtin_cd(char **tokens, int count) {
     const char *dir;
     if (count == 1 || (strcmp(tokens[1], "~") == 0)) {
         dir = getenv("HOME");
-    }
-    else {
+    } else {
         dir = tokens[1];
     }
     if (dir == NULL) {
@@ -126,12 +125,9 @@ void builtin_cd(char **tokens, int count) {
     }
 }
 
-static const builtin_entry dispatch[] = {{"echo", builtin_echo},
-                                         {"exit", builtin_exit},
-                                         {"type", builtin_type},
-                                         {"pwd", builtin_pwd},
-                                         {"cd", builtin_cd},
-                                         {NULL, NULL}};
+static const builtin_entry dispatch[] = {
+    {"echo", builtin_echo}, {"exit", builtin_exit}, {"type", builtin_type},
+    {"pwd", builtin_pwd},   {"cd", builtin_cd},     {NULL, NULL}};
 
 bool is_builtin(const char *cmd) {
     for (int i = 0; dispatch[i].name; i++) {
