@@ -36,7 +36,8 @@ void emit_token(char *buffer, size_t *buffer_index, char tokens[][MAX_TOKEN_LEN]
 typedef enum {
     STATE_NORMAL,
     STATE_SINGLE_QUOTED,
-    STATE_DOUBLE_QUOTED
+    STATE_DOUBLE_QUOTED,
+    STATE_BACKSLASH_NORMAL
 } TokenizerState;
 
 ssize_t tokenize_fixed(char *input, char tokens[][MAX_TOKEN_LEN]) {
@@ -66,6 +67,9 @@ ssize_t tokenize_fixed(char *input, char tokens[][MAX_TOKEN_LEN]) {
                 else if (ch == '\"') {
                     state = STATE_DOUBLE_QUOTED;
                 }
+                else if (ch == '\\') {
+                    state = STATE_BACKSLASH_NORMAL;
+                }
                 else {
                     // append buffer
                     buffer[len++] = ch;
@@ -90,6 +94,12 @@ ssize_t tokenize_fixed(char *input, char tokens[][MAX_TOKEN_LEN]) {
                     // append buffer
                     buffer[len++] = ch;
                 }
+                break;
+
+            case STATE_BACKSLASH_NORMAL:
+                // append buffer
+                buffer[len++] = ch;
+                state = STATE_NORMAL;
                 break;
         }
     }
