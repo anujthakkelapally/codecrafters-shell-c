@@ -37,7 +37,8 @@ typedef enum {
     STATE_NORMAL,
     STATE_SINGLE_QUOTED,
     STATE_DOUBLE_QUOTED,
-    STATE_BACKSLASH_NORMAL
+    STATE_BACKSLASH_NORMAL,
+    STATE_BACKSLASH_DOUBLE_QUOTED
 } TokenizerState;
 
 ssize_t tokenize_fixed(char *input, char tokens[][MAX_TOKEN_LEN]) {
@@ -90,6 +91,9 @@ ssize_t tokenize_fixed(char *input, char tokens[][MAX_TOKEN_LEN]) {
                 if (ch == '\"') {
                     state = STATE_NORMAL;
                 }
+                else if (ch == '\\') {
+                    state = STATE_BACKSLASH_DOUBLE_QUOTED;
+                }
                 else {
                     // append buffer
                     buffer[len++] = ch;
@@ -100,6 +104,21 @@ ssize_t tokenize_fixed(char *input, char tokens[][MAX_TOKEN_LEN]) {
                 // append buffer
                 buffer[len++] = ch;
                 state = STATE_NORMAL;
+                break;
+
+            case STATE_BACKSLASH_DOUBLE_QUOTED:
+                char special_chars[] = {'\"', '\\', '$', '`', '\n', '\0'};
+                bool is_special = false;
+                for (int i = 0; special_chars[i]; i++) {
+                    if (ch == special_chars[i]) is_special = true;
+                }
+                // append buffer
+                if (!is_special) {
+                    buffer[len++] = '\\';
+                }
+                buffer[len++] = ch;
+                state = STATE_DOUBLE_QUOTED;
+
                 break;
         }
     }
